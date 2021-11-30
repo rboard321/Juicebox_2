@@ -3,6 +3,7 @@
 // grab our client with destructuring from the export in index.js
 const {
   client,
+  getAllTags,
   getAllUsers,
   createUser,
   updateUser,
