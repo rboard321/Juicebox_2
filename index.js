@@ -1,10 +1,11 @@
 // inside index.js
 require('dotenv').config();
 
-const { PORT = 3000 }= process.env
+const { PORT = 3000 } = process.env 
 const express = require('express');
 const server = express();
-const { updatePost, getPostById } = require('../db')
+const { client } = require('./db');
+
 
 const morgan = require('morgan');
 server.use(morgan('dev'));
@@ -36,8 +37,16 @@ server.use((req, res, next) => {
   const apiRouter = require('./api');
   server.use('/api', apiRouter);
 
+  server.get('/api', (req, res, next) => {
+    console.log("A get request was made to /api");
+    res.send({message: 'success'})
+  })
 
-  const { client } = require('./db');
+  server.use("/api", (req, res, next) => {
+    console.log("A request was made to /api");
+    next();
+  });
+  
 client.connect();
 
 server.listen(PORT, () => {

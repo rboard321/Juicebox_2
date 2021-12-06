@@ -2,7 +2,14 @@
 const { Client } = require("pg"); // imports the pg module
 
 // supply the db name and location of the database
-const client = new Client(process.env.DATABASE_URL || "postgres://localhost:5432/juicebox-dev");
+const client = new Client({
+  connectionString:
+    process.env.DATABASE_URL || "postgres://localhost:5432/juicebox-dev",
+  ssl:
+    process.env.NODE_ENV === "production"
+      ? { rejectUnauthorized: false }
+      : undefined,
+});
 
 async function createUser({ username, password, name, location }) {
   try {
@@ -25,7 +32,6 @@ async function createUser({ username, password, name, location }) {
 }
 
 async function updateUser(id, fields = {}) {
-  console.log("Object fields: ", Object.keys(fields));
   // build the set string
   const setString = Object.keys(fields)
     .map((key, index) => `"${key}"=$${index + 1}`)
@@ -90,12 +96,7 @@ async function getUserById(userId) {
   }
 }
 
-async function createPost({ 
-  authorId, 
-  title, 
-  content, 
-  tags = [] 
-}) {
+async function createPost({ authorId, title, content, tags = [] }) {
   try {
     const {
       rows: [post],
@@ -129,10 +130,10 @@ async function getPostById(postId) {
       [postId]
     );
 
-    if(!post){
-      throw{
+    if (!post) {
+      throw {
         name: "PostNotFoundError",
-        message: "Could not find a post with that postId"
+        message: "Could not find a post with that postId",
       };
     }
 
@@ -174,9 +175,9 @@ async function updatePost(postId, fields = {}) {
   const { tags } = fields;
   delete fields.tags;
 
-  const setString = Object.keys(fields).map(
-    (key, index) => `"${key}"=$${index + 1}`
-    ).join(", ");
+  const setString = Object.keys(fields)
+    .map((key, index) => `"${key}"=$${index + 1}`)
+    .join(", ");
 
   try {
     if (setString.length > 0) {
@@ -315,40 +316,46 @@ async function addTagsToPost(postId, tagList) {
 
 async function getPostsByTagName(tagName) {
   try {
-    const { rows: postIds } = await client.query(`
+    const { rows: postIds } = await client.query(
+      `
       SELECT posts.id
       FROM posts
       JOIN post_tags ON posts.id=post_tags."postId"
       JOIN tags ON tags.id=post_tags."tagId"
       WHERE tags.name=$1;
-    `, [tagName]);
+    `,
+      [tagName]
+    );
 
-    return await Promise.all(postIds.map(
-      post => getPostById(post.id)
-    ));
+    return await Promise.all(postIds.map((post) => getPostById(post.id)));
   } catch (error) {
     throw error;
   }
-} 
+}
 
-async function getAllTags(){
-  try{
+async function getAllTags() {
+  try {
     const tags = await client.query(`
     SELECT * FROM tags;
     `);
-    return tags 
-  } catch (error){
-  throw error;
+    return tags;
+  } catch (error) {
+    throw error;
   }
 }
 
 async function getUserByUsername(username) {
   try {
-    const { rows: [user] } = await client.query(`
+    const {
+      rows: [user],
+    } = await client.query(
+      `
       SELECT *
       FROM users
       WHERE username=$1;
-    `, [username]);
+    `,
+      [username]
+    );
 
     return user;
   } catch (error) {

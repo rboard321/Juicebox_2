@@ -3,19 +3,15 @@
 // grab our client with destructuring from the export in index.js
 const {
   client,
-  getAllTags,
   getAllUsers,
   createUser,
   updateUser,
   createPost,
   getAllPosts,
-  getPostsByUser,
   updatePost,
   getUserById,
   createTags,
   addTagsToPost,
-  getPostById,
-  createPostTag,
   getPostsByTagName,
 } = require("./index");
 
@@ -64,7 +60,7 @@ async function createTables() {
              UNIQUE ("postId", "tagId")
          );
          `);
-    console.log("Finished building tables!");
+    console.log("Finished building tables!");ß
   } catch (error) {
     console.error("Error building tables!");
     throw error;
@@ -163,6 +159,7 @@ async function rebuildDb() {
     await createTables();
     await createInitialUsers();
     await createInitialPosts();
+    await createInitialTags();
   } catch (error) {
     throw error;
   }
@@ -197,7 +194,7 @@ async function testDB() {
 
     console.log("Calling updatePost on posts[1], only updating tags");
     const updatePostTagsResult = await updatePost(posts[1].id, {
-      tags: ["#youcandoanything", "#redfish", "#bluefish"]
+      tags: ["#youcandoanything", "#redfish", "#bluefish"],
     });
     console.log("Result:", updatePostTagsResult);
 

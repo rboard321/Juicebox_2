@@ -1,7 +1,7 @@
 const express = require('express');
 const tagsRouter = express.Router();
 
-const {getAllTags, getPostsByTagName} =  require('../db');
+const {getPostsByTagName} =  require('../db');
 
 tagsRouter.get('/:tagsName/posts', async (req,res, next) =>{
     const {tagName} = req.params;
